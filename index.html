@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Transferir</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#ffffff; --text:#1f2233; --muted:#6b6f85; --accent:#3f3de0;
+  --tint:#e9eefd; --line:#8c8aae; --soft:#d3d7ea; --disabled-text:#8f94bd;
+  --key:#ffffff; --keys-bg:#d2d5dc; --key-dark:#aeb3bf;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100vh;position:relative}
+.screen{display:none;padding:20px 20px 40px;min-height:100vh}
+.screen.active{display:block}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* barra superior */
+.topbar{display:flex;align-items:center;gap:10px}
+.sq{height:46px;min-width:46px;border-radius:14px;background:var(--tint);color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;font-size:17px;padding:0 14px}
+.spacer{flex:1}
+h1{font-size:34px;font-weight:700;letter-spacing:-.5px;margin:26px 0 22px}
+
+/* buscador */
+.search{display:flex;gap:14px}
+.search input{flex:1;height:56px;border:2px solid var(--line);border-radius:14px;padding:0 16px;font:inherit;font-size:17px;background:transparent;color:var(--text)}
+.search input::placeholder{color:var(--muted)}
+.cam{width:56px;height:56px;border-radius:14px;background:var(--tint);color:var(--accent);display:flex;align-items:center;justify-content:center}
+
+/* secciones */
+.sec{display:flex;align-items:center;justify-content:space-between;margin:30px 0 10px}
+.sec h2{font-size:22px;font-weight:700}
+.fav{border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:600;font-size:16px}
+.contact{display:flex;align-items:center;gap:16px;padding:14px 0;width:100%;text-align:left}
+.avatar{width:58px;height:58px;border-radius:50%;border:3px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:var(--muted);flex:none;overflow:hidden}
+.badge.pimg{overflow:hidden;padding:0;background:#fff}
+.badge.pimg img{width:58%;height:58%;object-fit:contain;display:block}
+.avatar.hasimg{background:#fff;padding:9px}
+.avatar img{width:100%;height:100%;object-fit:contain;display:block}
+.avatar.photo{background:linear-gradient(135deg,#6a7b5c,#2a3326);color:#fff;font-size:20px}
+.avatar.photo2{background:linear-gradient(135deg,#9bb6d6,#e6e9ef);color:#25324a;font-size:20px}
+.info{flex:1;min-width:0}
+.name{font-size:20px;font-weight:600;line-height:1.2}
+.sub{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--muted);font-size:20px}
+.badge{width:30px;height:30px;border-radius:50%;border:2px solid var(--soft);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.badge i{width:16px;height:16px;border-radius:50%;display:block}
+.b-yellow i{background:#ffd800;box-shadow:inset 0 0 0 3px #1a56c9}
+.b-green i{background:#3fa04a}
+.b-violet i{background:#5b3fe0}
+.vos{background:var(--tint);color:var(--accent);font-weight:600;font-size:16px;padding:7px 18px;border-radius:999px;margin-right:6px}
+.dots{width:30px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none}
+.dots span{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+
+/* botón flotante */
+.fab{position:fixed;right:max(20px,calc(50% - 200px));bottom:36%;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff68a,#ffe600 60%,#f5d700);box-shadow:0 0 22px rgba(255,230,0,.55);display:flex;align-items:center;justify-content:center;color:#4a45d6;z-index:5}
+body.loading .fab{display:none}
+
+/* pantalla monto */
+.dest{display:flex;align-items:flex-start;gap:14px;margin-top:6px}
+.dest .badge{width:46px;height:46px;border-width:2px}
+.dest .badge i{width:28px;height:28px}
+.dest h3{font-size:25px;font-weight:700;line-height:1.1}
+.dest p{font-size:21px;margin-top:6px}
+.motivo{color:var(--accent);font-weight:600;font-size:20px;margin-top:6px;display:inline-flex;gap:10px;align-items:center}
+.amount{display:flex;align-items:center;margin-top:56px;font-size:76px;font-weight:700;color:var(--accent);min-height:96px;letter-spacing:-1px}
+.amount .cur{opacity:.85;margin-right:12px}
+.amount .caret{width:2px;height:80px;background:var(--accent);margin-right:6px;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.amount .caret{animation:none}}
+.amount.zero{color:var(--muted)}
+.avail{display:flex;align-items:center;gap:10px;font-size:20px;color:var(--muted);margin-top:4px}
+.avail b{color:var(--text)}
+.avail.err,.avail.err b{color:#d93a3a}
+.chips{display:flex;gap:16px;margin-top:70px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);border-radius:14px;padding:16px 22px;font-size:22px;font-weight:600}
+.go{margin-top:44px;width:100%;height:68px;border-radius:18px;background:var(--accent);color:#fff;font-size:23px;font-weight:600}
+.go:disabled{background:var(--soft);color:var(--disabled-text);cursor:not-allowed}
+
+/* teclado */
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--keys-bg);padding:12px 10px 18px;margin:30px -20px -40px}
+.k{height:76px;border-radius:10px;background:var(--key);color:#111;box-shadow:0 1px 0 rgba(0,0,0,.3);font-size:38px;font-weight:400;display:flex;align-items:center;justify-content:center}
+.k.dark{background:var(--key-dark)}
+.k.act{color:var(--accent);font-size:30px;font-weight:600}
+.k:active{filter:brightness(1.35)}
+
+/* Spinner de Carga (solo visible cuando es la pantalla activa) */
+.screen-loader {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.screen-loader.active { display: flex; }
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 4px solid var(--soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pantalla de confirmación */
+#sConfirm{padding:0}
+#sConfirm.active{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.c-sheet{background:#fff;border-radius:0 0 28px 28px;box-shadow:0 8px 14px -6px rgba(0,0,0,.28);flex:1 1 auto;min-height:260px;display:flex;flex-direction:column;padding:20px 17px 0;position:relative;z-index:1}
+.c-dest{display:flex;align-items:center;gap:10px;margin-top:10px}
+.c-dest .badge{width:40px;height:40px}
+.c-dest .badge i{width:24px;height:24px}
+.c-dest h3{font-size:17px;font-weight:700;line-height:1.2}
+.c-dest p{font-size:16px;margin-top:2px}
+.c-total{margin-top:auto}
+.c-total hr{border:0;border-top:1.5px solid var(--soft)}
+.c-row{display:flex;justify-content:space-between;align-items:center;height:60px}
+.c-row .l{font-size:20px;font-weight:700}
+.c-row .r{font-size:28px;font-weight:700}
+.cards{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 38px;scroll-padding-left:38px;margin-top:28px;flex:none;scrollbar-width:none}
+.cards::-webkit-scrollbar{display:none}
+.cc{flex:none;width:100%;height:190px;border-radius:14px;scroll-snap-align:start;position:relative;overflow:hidden}
+.cc.mp{background:#222a3a;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.cc.add{background:#e9eefd;border:2px dashed #3f6ae8}
+.wm{position:absolute;left:130px;top:-4px;font-size:84px;font-weight:800;line-height:69px;letter-spacing:-2px;color:rgba(255,255,255,.06);white-space:nowrap;pointer-events:none}
+.mp .logo{position:absolute;left:17px;top:22px}
+.mp .bal{position:absolute;right:56px;top:22px;color:#fff;font-weight:700;font-size:16px;white-space:nowrap}
+.mp .eye{position:absolute;right:30px;top:21px;color:#fff}
+.mp .pill{position:absolute;right:0;bottom:24px;background:#f2f2f5;color:#666a78;font-size:13px;font-weight:500;height:29px;display:flex;align-items:center;padding:0 12px 0 14px;border-radius:15px 0 0 15px}
+.mp .free{position:absolute;left:0;right:0;bottom:0;height:20px;background:#009b3f;color:#fff;font-size:16px;line-height:20px;text-align:center}
+.cc.add .plus{position:absolute;left:16px;bottom:30px;display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:600;font-size:15px}
+.pg{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;margin-bottom:18px;flex:none}
+.pg i{width:8px;height:8px;border-radius:4px;background:#a9a9b3;display:block;transition:width .2s}
+.pg i.on{width:26px;background:#2b2b3a}
+#btnTransferir{flex:none;margin:0 21px;width:calc(100% - 42px);height:51px;border-radius:16px;font-size:20px;font-weight:600}
+body.confirm .fab{bottom:calc(280px + env(safe-area-inset-bottom,0px))}
+
+/* Pantalla de éxito final */
+#sSuccess.active{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+#sSuccess .topbar{padding-top:16px}
+.success-icon{width:68px;height:68px;background:#1e7d1e;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;margin-top:64px;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes popIn{0%{transform:scale(0)}100%{transform:scale(1)}}
+#successTitle{font-size:28px;margin:20px 0 26px}
+.s-dest{margin-top:0;gap:14px;align-items:center}
+.s-dest .badge{width:46px;height:46px;border-width:2px}
+.s-dest h3{font-size:19px;font-weight:600;line-height:1.2}
+.s-dest p{font-size:16px;margin-top:2px;color:var(--text);opacity:.8}
+.mago{display:flex;margin-top:46px;background:#e8eaf2;border-radius:20px;overflow:hidden;min-height:138px}
+.mago-txt{flex:1;padding:16px 8px 16px 16px;display:flex;flex-direction:column;min-width:0}
+.mago-k{font-size:13px;color:#3b3e52}
+.mago-t{font-size:16px;font-weight:600;line-height:1.3;margin-top:6px}
+.mago-l{margin-top:auto;color:var(--accent);font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding-top:10px}
+.mago-img{position:relative;width:104px;flex:none;background:linear-gradient(180deg,#8d8070,#c9c0b4)}
+.mago-img svg{position:absolute;inset:0;width:100%;height:100%}
+.bub{position:absolute;background:#fff;border-radius:8px;font-size:7px;font-weight:600;line-height:1.25;color:#222;padding:5px 7px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.bub.b1{right:4px;bottom:34px;width:64px}
+.bub.b2{left:-4px;bottom:8px;display:flex;align-items:center;gap:5px;padding:4px 10px 4px 5px;font-size:7px}
+.bub.b2 i{width:14px;height:14px;border-radius:50%;background:#ffe600;display:inline-block}
+.success-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:24px}
+.success-actions button{width:100%;height:48px;margin:0;border-radius:14px;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-primary-custom{background:var(--accent);color:#fff}
+.btn-secondary-custom{background:var(--tint);color:var(--accent)}
+body.success .fab{bottom:calc(200px + env(safe-area-inset-bottom,0px))}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- PANTALLA 1: TRANSFERIR -->
+<section class="screen active" id="s1">
+  <div class="topbar">
+    <button class="sq" aria-label="Volver"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <span class="spacer"></span>
+    <button class="sq" style="padding:0 22px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agendar</button>
+    <button class="sq" aria-label="Ajustes"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+
+  <h1>Transferir</h1>
+
+  <div class="search">
+    <input id="q" type="text" placeholder="Alias, CBU/CVU, celular o nombre" autocomplete="off">
+    <button class="cam" aria-label="Escanear"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+  </div>
+
+  <div class="sec"><h2>Sugeridos</h2><button class="fav">Favoritos</button></div>
+  <div id="sugeridos"></div>
+
+  <div class="sec" style="margin-top:34px"><h2>Recientes</h2></div>
+  <div id="recientes"></div>
+</section>
+
+<!-- PANTALLA 2: MONTO -->
+<section class="screen" id="s2">
+  <div class="topbar"><button class="sq" id="back" aria-label="Volver"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div>
+  <h1 style="font-size:36px;margin:28px 0 14px">Ingresá el monto</h1>
+  <div class="dest">
+    <span class="badge b-yellow" id="dBadge"><i></i></span>
+    <div>
+      <h3 id="dName">Franco Migliore Arena</h3>
+      <p id="dAlias">Alias: fran.migliore</p>
+      <button class="motivo" id="motivo">Motivo: <span id="motivoTxt">Varios</span> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+
+  <div class="amount zero" id="amount"><span class="cur">$</span><span class="caret"></span><span id="amtTxt">0</span></div>
+  <div class="avail" id="avail">Dinero disponible: <b id="availTxt"></b>
+    <button id="eye" aria-label="Mostrar u ocultar saldo" style="color:var(--accent)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+
+  <div class="chips">
+    <button class="chip" data-v="700">$ 700</button>
+    <button class="chip" data-v="2400">$ 2.400</button>
+    <button class="chip" data-v="3000">$ 3.000</button>
+  </div>
+  <button class="go" id="go" disabled>Continuar</button>
+
+  <div class="kb" id="kb">
+    <button class="k" data-k="1">1</button><button class="k" data-k="2">2</button><button class="k" data-k="3">3</button>
+    <button class="k dark" data-k="del" aria-label="Borrar"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6"/></svg></button>
+    <button class="k" data-k="4">4</button><button class="k" data-k="5">5</button><button class="k" data-k="6">6</button>
+    <button class="k dark act" data-k="ok">Realiz.</button>
+    <button class="k" data-k="7">7</button><button class="k" data-k="8">8</button><button class="k" data-k="9">9</button>
+    <button class="k dark" data-k=".">.</button>
+    <button class="k dark" aria-hidden="true" tabindex="-1"></button><button class="k" data-k="0">0</button><button class="k dark" aria-hidden="true" tabindex="-1"></button>
+    <button class="k dark" data-k=",">,</button>
+  </div>
+</section>
+
+<!-- PANTALLA 3: PANTALLA DE CARGA -->
+<section class="screen screen-loader" id="sLoading">
+  <div class="spinner"></div>
+</section>
+
+<!-- PANTALLA 4: CONFIRMACIÓN Y TARJETA -->
+<section class="screen" id="sConfirm">
+  <div class="c-sheet">
+    <button class="sq" id="backToAmount" aria-label="Volver" style="width:41px;min-width:41px;height:41px;border-radius:12px;padding:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="c-dest">
+      <span class="badge b-yellow" id="cBadge"><i></i></span>
+      <div>
+        <h3 id="cName">Franco Migliore Arena</h3>
+        <p id="cAlias">Alias: fran.migliore</p>
+      </div>
+    </div>
+    <div class="c-total">
+      <hr>
+      <div class="c-row"><span class="l">Total</span><span class="r" id="cTotalAmt">$ 0</span></div>
+    </div>
+  </div>
+
+  <div class="cards" id="cards">
+    <div class="cc mp">
+      <div class="wm">MER<br>CADO<br>PAGO</div>
+      <svg class="logo" width="56" height="40" viewBox="0 0 56 40" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="28" cy="20" rx="25" ry="17"/><path d="M12 22l8 6 6-5 8 5 10-9"/></svg>
+      <span class="bal" id="cCardAvail">$ 12.349,00</span>
+      <svg class="eye" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="pill">DINERO DISPONIBLE</span>
+      <div class="free">Sin comisión</div>
+    </div>
+    <div class="cc add">
+      <span class="plus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Agregar medio de pago</span>
+    </div>
+  </div>
+  <div class="pg" id="pg"><i class="on"></i><i></i></div>
+
+  <button class="go" id="btnTransferir">Transferir</button>
+</section>
+
+<!-- PANTALLA 5: ÉXITO -->
+<section class="screen" id="sSuccess">
+  <div class="topbar">
+    <span class="spacer"></span>
+    <button class="sq" id="closeSuccess" aria-label="Cerrar" style="width:40px;min-width:40px;height:40px;border-radius:12px;padding:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="success-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <h1 id="successTitle">Transferiste $ 1</h1>
+
+  <div class="dest s-dest">
+    <span class="badge b-yellow" id="sBadge"><i></i></span>
+    <div>
+      <h3 id="sName">Franco Migliore Arena</h3>
+      <p id="sAlias">Alias: fran.migliore</p>
+      <p>Mercado Pago</p>
+    </div>
+  </div>
+
+  <div class="mago">
+    <div class="mago-txt">
+      <span class="mago-k">Mago, tu asistente</span>
+      <span class="mago-t">Hacé pagos y transferencias por mensaje o audio</span>
+      <button class="mago-l" id="btnMago">Hablar con Mago <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="mago-img" aria-hidden="true">
+      <svg viewBox="0 0 104 138" preserveAspectRatio="xMidYMid slice">
+        <path d="M8 138c0-30 16-44 44-44s44 14 44 44z" fill="#a9b0a4"/>
+        <rect x="44" y="70" width="16" height="26" rx="6" fill="#b87a55"/>
+        <ellipse cx="52" cy="50" rx="19" ry="23" fill="#c68a63"/>
+        <path d="M33 46c0-20 10-26 21-26s17 8 16 26c-3-9-8-12-19-12s-15 4-18 12z" fill="#2a2220"/>
+        <rect x="20" y="64" width="26" height="46" rx="5" fill="#111" transform="rotate(-10 33 87)"/>
+        <rect x="22" y="67" width="22" height="40" rx="3" fill="#2b2f3a" transform="rotate(-10 33 87)"/>
+      </svg>
+      <div class="bub b1">Tranferí $ 3.000 para Alejandro</div>
+      <div class="bub b2"><i></i>¡Enviado!</div>
+    </div>
+  </div>
+
+  <div class="success-actions">
+    <button class="btn-primary-custom" id="btnShare">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.83 3.98"/></svg>
+      Compartir comprobante
+    </button>
+    <button class="btn-secondary-custom" id="btnAnother">Hacer otra transferencia</button>
+  </div>
+</section>
+
+<button class="fab" aria-label="Asistente"><svg width="38" height="38" viewBox="0 0 24 24" fill="currentColor"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg></button>
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+var DISPONIBLE = 12349;
+var CONTACTOS = {
+  sug: [
+    {n:"Lola Rust", i:"LR", photo:"photo", b:["y","g"]},
+    {n:"Zoe Malena,fauquen Hernandez", i:"ZH", b:["g"], alias:"ffauquenn"}
+  ],
+  rec: [
+    {n:"Ines del Carmen Colmegna", i:"IC", b:["y"], alias:"lainecafe"},
+    {n:"Genaro,marziali", i:"G", b:["g"], vos:true},
+    {n:"Maria Eugenia Braun", i:"MB", b:["y"], alias:"tubuffet.t2"},
+    {n:"Franco Migliore Arena", i:"FM", photo:"photo2", b:["y","g"], alias:"fran.migliore"},
+    {n:"Alberto Nicolas Aguirre", i:"AA", b:["v"]},
+    {n:"Bautista Barraza", i:"BB", b:["g"]},
+    {n:"Marcos Ezequiel,carbajo", i:"MC", b:["y"], alias:"cantina.migue", img:"data:image/jpeg;base64,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"}
+  ]
+};
+var BCLS = {y:"b-yellow", g:"b-green", v:"b-violet"};
+var digits = "0", visible = true;
+var current = CONTACTOS.rec[3]; // Franco Migliore Arena por defecto
+
+function $(id){return document.getElementById(id)}
+function fmt(n){return n.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtInt(s){
+  var p = s.split(","), ent = p[0].replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  return p.length>1 ? ent+","+p[1] : ent;
+}
+function toast(t){var e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove("show")},1800)}
+
+function row(c){
+  var b = document.createElement("button");
+  b.className = "contact";
+  var badges = c.b.map(function(k){return '<span class="badge '+BCLS[k]+'"><i></i></span>'}).join("");
+  var alias = c.alias ? '<span>'+c.alias+'</span>' : '';
+  b.innerHTML = '<span class="avatar '+(c.photo||"")+(c.img?" hasimg":"")+'">'+(c.img?'<img src="'+c.img+'" alt="">':c.i)+'</span>'+
+    '<span class="info"><div class="name">'+c.n+'</div><div class="sub">'+badges+alias+'</div></span>'+
+    (c.vos?'<span class="vos">Vos</span>':'')+
+    '<span class="dots"><span></span><span></span><span></span></span>';
+  b.addEventListener("click", function(){open(c)});
+  return b;
+}
+function render(filter){
+  var f = (filter||"").toLowerCase();
+  [["sugeridos",CONTACTOS.sug],["recientes",CONTACTOS.rec]].forEach(function(p){
+    var box = $(p[0]); box.innerHTML = "";
+    p[1].filter(function(c){return c.n.toLowerCase().indexOf(f)>-1}).forEach(function(c){box.appendChild(row(c))});
+  });
+}
+function open(c){
+  current = c; digits = "0"; update();
+  $("dName").textContent = c.n;
+  $("dAlias").textContent = c.alias ? "Alias: "+c.alias : "Alias: sin alias";
+  setBadge("dBadge", c);
+  switchScreen("s2");
+}
+function setBadge(id, c){
+  var el = $(id);
+  if(c && c.img){ el.className = "badge pimg"; el.innerHTML = '<img src="'+c.img+'" alt="">'; }
+  else { el.className = "badge " + ((c && c.b) ? BCLS[c.b[0]] : "b-yellow"); el.innerHTML = "<i></i>"; }
+}
+function switchScreen(id){
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
+  $(id).classList.add("active");
+  document.body.classList.toggle("loading", id === "sLoading");
+  document.body.classList.toggle("success", id === "sSuccess");
+  document.body.classList.toggle("confirm", id === "sConfirm");
+  if(id === "sConfirm"){ $("cards").scrollLeft = 0; setDots(0); }
+  window.scrollTo(0,0);
+}
+function setDots(i){
+  var d = $("pg").children;
+  for(var k=0;k<d.length;k++) d[k].classList.toggle("on", k===i);
+}
+$("cards").addEventListener("scroll", function(){
+  setDots(this.scrollLeft > 40 ? 1 : 0);
+});
+function update(){
+  var val = parseFloat(digits.replace(",",".")) || 0;
+  $("amtTxt").textContent = fmtInt(digits);
+  $("amount").classList.toggle("zero", val===0);
+  var over = val > DISPONIBLE;
+  $("avail").classList.toggle("err", over);
+  $("availTxt").textContent = visible ? "$ "+fmt(DISPONIBLE) : "$ ••••••";
+  $("go").disabled = val<=0 || over;
+}
+function press(k){
+  if(k==="del"){ digits = digits.length>1 ? digits.slice(0,-1) : "0"; }
+  else if(k===","){ if(digits.indexOf(",")<0) digits += ","; }
+  else if(k==="."){ return; }
+  else if(k==="ok"){ if(!$("go").disabled) $("go").click(); return; }
+  else {
+    var dec = digits.split(",")[1];
+    if(dec!==undefined && dec.length>=2) return;
+    if(digits.replace(",","").length>=10) return;
+    digits = (digits==="0") ? k : digits+k;
+  }
+  update();
+}
+$("kb").addEventListener("click", function(e){
+  var b = e.target.closest("[data-k]"); if(b) press(b.dataset.k);
+});
+document.querySelectorAll(".chip").forEach(function(c){
+  c.addEventListener("click", function(){digits = c.dataset.v; update()});
+});
+$("eye").addEventListener("click", function(){visible=!visible; update()});
+$("back").addEventListener("click", function(){switchScreen("s1");});
+$("backToAmount").addEventListener("click", function(){switchScreen("s2");});
+
+$("q").addEventListener("input", function(e){render(e.target.value)});
+
+// 1. Al presionar "Continuar": carga 2 segundos y pasa a la Confirmación
+$("go").addEventListener("click", function(){
+  switchScreen("sLoading");
+  setTimeout(function(){
+    var name = current ? current.n : "Franco Migliore Arena";
+    var alias = (current && current.alias) ? "Alias: " + current.alias : "Alias: fran.migliore";
+    var badgeClass = (current && current.b) ? "badge " + BCLS[current.b[0]] : "badge b-yellow";
+
+    $("cName").textContent = name;
+    $("cAlias").textContent = alias;
+    setBadge("cBadge", current);
+    $("cTotalAmt").textContent = "$ " + fmtInt(digits);
+    $("cCardAvail").textContent = "$ " + fmt(DISPONIBLE);
+    switchScreen("sConfirm");
+  }, 2000);
+});
+
+// 2. Al presionar "Transferir": carga 3 segundos y pasa a la pantalla de Éxito
+$("btnTransferir").addEventListener("click", function(){
+  switchScreen("sLoading");
+  setTimeout(function(){
+    var name = current ? current.n : "Franco Migliore Arena";
+    var alias = (current && current.alias) ? "Alias: " + current.alias : "Alias: fran.migliore";
+    var badgeClass = (current && current.b) ? "badge " + BCLS[current.b[0]] : "badge b-yellow";
+
+    $("successTitle").textContent = "Transferiste $ " + fmtInt(digits);
+    $("sName").textContent = name;
+    $("sAlias").textContent = alias;
+    setBadge("sBadge", current);
+    switchScreen("sSuccess");
+  }, 3000);
+});
+
+// Acciones finales
+$("btnShare").addEventListener("click", function(){
+  toast("Comprobante copiado");
+});
+$("btnAnother").addEventListener("click", function(){
+  digits = "0";
+  update();
+  switchScreen("s1");
+});
+$("closeSuccess").addEventListener("click", function(){
+  digits = "0";
+  update();
+  switchScreen("s1");
+});
+
+$("motivo").addEventListener("click", function(){
+  var m = ["Varios","Alquiler","Cuota","Comida","Haberes"], i = m.indexOf($("motivoTxt").textContent);
+  $("motivoTxt").textContent = m[(i+1)%m.length];
+});
+
+render(); update();
+</script>
+</body>
+</html>
